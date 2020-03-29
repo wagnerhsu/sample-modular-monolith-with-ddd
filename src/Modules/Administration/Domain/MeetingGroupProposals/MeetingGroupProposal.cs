@@ -27,6 +27,8 @@ namespace CompanyName.MyMeetings.Modules.Administration.Domain.MeetingGroupPropo
         private MeetingGroupProposal()
         {
             // Only for EF.
+
+            _decision = MeetingGroupProposalDecision.NoDecision;
         }
 
         private MeetingGroupProposal(
@@ -61,8 +63,11 @@ namespace CompanyName.MyMeetings.Modules.Administration.Domain.MeetingGroupPropo
             this.AddDomainEvent(new MeetingGroupProposalAcceptedDomainEvent(this.Id));
         }
 
-        internal void Reject(UserId userId, string rejectReason)
+        public void Reject(UserId userId, string rejectReason)
         {
+            this.CheckRule(new MeetingGroupProposalCanBeVerifiedOnceRule(_decision));
+            this.CheckRule(new MeetingGroupProposalRejectionMustHaveAReasonRule(rejectReason));
+
             _decision = MeetingGroupProposalDecision.RejectDecision(DateTime.UtcNow, userId, rejectReason);
 
             _status = _decision.GetStatusForDecision();

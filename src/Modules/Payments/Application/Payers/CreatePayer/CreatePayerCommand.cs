@@ -1,12 +1,13 @@
 ﻿using System;
-using CompanyName.MyMeetings.Modules.Payments.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.Payments.Application.Configuration.Commands;
 using Newtonsoft.Json;
 
 namespace CompanyName.MyMeetings.Modules.Payments.Application.Payers.CreatePayer
 {
-    internal class CreatePayerCommand : InternalCommandBase
+    public class CreatePayerCommand : InternalCommandBase<Guid>
     {
         internal Guid UserId {get; }
+
         internal string Login { get; }
 
         internal string Email { get; }
@@ -18,7 +19,14 @@ namespace CompanyName.MyMeetings.Modules.Payments.Application.Payers.CreatePayer
         internal string Name { get; }
 
         [JsonConstructor]
-        internal CreatePayerCommand(Guid id, Guid userId, string login, string email, string firstName, string lastName, string name) : base(id)
+        public CreatePayerCommand(
+            Guid id, 
+            Guid userId, 
+            string login, 
+            string email, 
+            string firstName, 
+            string lastName, 
+            string name) : base(id)
         {
             UserId = userId;
             Login = login;

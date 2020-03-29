@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using Autofac;
+﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using CompanyName.MyMeetings.API.Configuration.Authorization;
 using CompanyName.MyMeetings.API.Configuration.Validation;
@@ -12,10 +9,6 @@ using CompanyName.MyMeetings.API.Modules.UserAccess;
 using CompanyName.MyMeetings.BuildingBlocks.Application;
 using CompanyName.MyMeetings.BuildingBlocks.Domain;
 using CompanyName.MyMeetings.BuildingBlocks.Infrastructure.Emails;
-using CompanyName.MyMeetings.Modules.Administration.Application.Configuration;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration;
-using CompanyName.MyMeetings.Modules.Payments.Application.Configuration;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration;
 using CompanyName.MyMeetings.Modules.UserAccess.Application.IdentityServer;
 using Hellang.Middleware.ProblemDetails;
 using IdentityServer4.AccessTokenValidation;
@@ -24,11 +17,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Formatting.Compact;
+using System;
+using CompanyName.MyMeetings.Modules.Administration.Infrastructure.Configuration;
+using CompanyName.MyMeetings.Modules.Meetings.Infrastructure.Configuration;
+using CompanyName.MyMeetings.Modules.Payments.Infrastructure.Configuration;
+using CompanyName.MyMeetings.Modules.UserAccess.Infrastructure.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace CompanyName.MyMeetings.API
 {
@@ -39,7 +37,7 @@ namespace CompanyName.MyMeetings.API
         private static ILogger _logger;
         private static ILogger _loggerForApi;
 
-        public Startup(IHostingEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
             ConfigureLogger();
 
@@ -52,16 +50,15 @@ namespace CompanyName.MyMeetings.API
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            this.AddSwagger(services);
+            services.AddControllers();
+
+            services.AddSwaggerDocumentation();
 
             ConfigureIdentityServer(services);
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IExecutionContextAccessor, ExecutionContextAccessor>();
 
-            services
-                .AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-                
             services.AddProblemDetails(x =>
             {
                 x.Map<InvalidCommandException>(ex => new InvalidCommandProblemDetails(ex));
@@ -83,17 +80,20 @@ namespace CompanyName.MyMeetings.API
         }
      
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
             app.UseMiddleware<CorrelationMiddleware>();
-            ConfigureSwagger(app);
+            
+            app.UseSwaggerDocumentation();
+
+
 
             app.UseIdentityServer();
 
             if (env.IsDevelopment())
             {
-                // app.UseProblemDetails();
-                app.UseDeveloperExceptionPage();
+                 app.UseProblemDetails();
+              //  app.UseDeveloperExceptionPage();
             }
             else
             {
@@ -103,8 +103,12 @@ namespace CompanyName.MyMeetings.API
 
             app.UseHttpsRedirection();
 
-            app.UseMvc();
-           
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
         }
 
         private static void ConfigureLogger()
@@ -140,36 +144,7 @@ namespace CompanyName.MyMeetings.API
                     x.RequireHttpsMetadata = false;
                 });
         }
-
-        private static void ConfigureSwagger(IApplicationBuilder app)
-        {
-            app.UseSwagger();
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyMeetings API");
-            });
-        }
-
-        private void AddSwagger(IServiceCollection services)
-        {
-            services.AddSwaggerGen(options =>
-            {
-                options.DescribeAllEnumsAsStrings();
-                options.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
-                {
-                    Title = "MyMeetings API",
-                    Version = "v1",
-                    Description = "MyMeetings API for modular monolith .NET application.",
-                });
-
-                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                var commentsFileName = Assembly.GetExecutingAssembly().GetName().Name + ".XML";
-                var commentsFile = Path.Combine(baseDirectory, commentsFileName);
-                options.IncludeXmlComments(commentsFile);
-            });
-        }
-
+        
         private IServiceProvider CreateAutofacServiceProvider(IServiceCollection services)
         {
             var containerBuilder = new ContainerBuilder();
@@ -188,15 +163,32 @@ namespace CompanyName.MyMeetings.API
 
             var emailsConfiguration = new EmailsConfiguration(_configuration["EmailsConfiguration:FromEmail"]);
             
-            MeetingsStartup.Initialize(this._configuration[MeetingsConnectionString], executionContextAccessor, _logger, emailsConfiguration);
-            AdministrationStartup.Initialize(this._configuration[MeetingsConnectionString], executionContextAccessor, _logger);
+            MeetingsStartup.Initialize(
+                this._configuration[MeetingsConnectionString], 
+                executionContextAccessor, 
+                _logger, 
+                emailsConfiguration,
+                null);
+            
+            AdministrationStartup.Initialize(
+                this._configuration[MeetingsConnectionString], 
+                executionContextAccessor, 
+                _logger,
+                null);
+
             UserAccessStartup.Initialize(
                 this._configuration[MeetingsConnectionString], 
                 executionContextAccessor, 
                 _logger, 
                 emailsConfiguration,
-                this._configuration["Security:TextEncryptionKey"]);
-            PaymentsStartup.Initialize(this._configuration[MeetingsConnectionString], executionContextAccessor, _logger);
+                this._configuration["Security:TextEncryptionKey"],
+                null);
+
+            PaymentsStartup.Initialize(
+                this._configuration[MeetingsConnectionString], 
+                executionContextAccessor, 
+                _logger, 
+                null);
 
             return new AutofacServiceProvider(container);
         }

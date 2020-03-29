@@ -3,13 +3,19 @@ namespace CompanyName.MyMeetings.Modules.Administration.Domain.MeetingGroupPropo
 {
     public class MeetingGroupProposalStatus : ValueObject
     {
-        internal static MeetingGroupProposalStatus ToVerify => new MeetingGroupProposalStatus("ToVerify");
-        
+        public static MeetingGroupProposalStatus ToVerify => new MeetingGroupProposalStatus("ToVerify");
+        public static MeetingGroupProposalStatus Verified => new MeetingGroupProposalStatus("Verified");
+
         public string Value { get; }
 
-        internal MeetingGroupProposalStatus(string value)
+        private MeetingGroupProposalStatus(string value)
         {
             Value = value;
+        }
+
+        internal static MeetingGroupProposalStatus Create(string value)
+        {
+            return new MeetingGroupProposalStatus(value);
         }
     }
 }

@@ -1,14 +1,14 @@
 ﻿using System;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Processing.InternalCommands;
-using CompanyName.MyMeetings.Modules.UserAccess.Domain.UserRegistration;
+using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
+using CompanyName.MyMeetings.Modules.UserAccess.Domain.UserRegistrations;
 using Newtonsoft.Json;
 
 namespace CompanyName.MyMeetings.Modules.UserAccess.Application.Users.CreateUser
 {
-    internal class CreateUserCommand : InternalCommandBase
+    public class CreateUserCommand : InternalCommandBase<Guid>
     {
         [JsonConstructor]
-        internal CreateUserCommand(Guid id, UserRegistrationId userRegistrationId): base(id)
+        public CreateUserCommand(Guid id, UserRegistrationId userRegistrationId): base(id)
         {
             UserRegistrationId = userRegistrationId;
         }

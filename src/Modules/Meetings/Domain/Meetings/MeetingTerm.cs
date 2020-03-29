@@ -1,5 +1,6 @@
 ﻿using System;
 using CompanyName.MyMeetings.BuildingBlocks.Domain;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.SharedKernel;
 
 namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 {
@@ -9,24 +10,20 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
         public DateTime EndDate { get; }
 
-        public MeetingTerm(DateTime startDate, DateTime endDate)
+        public static MeetingTerm CreateNewBetweenDates(DateTime startDate, DateTime endDate)
+        {
+            return new MeetingTerm(startDate, endDate);
+        }
+
+        private MeetingTerm(DateTime startDate, DateTime endDate)
         {
             this.StartDate = startDate;
             this.EndDate = endDate;
         }
 
-        internal bool IsInTerm(DateTime date)
+        internal bool IsAfterStart()
         {
-            var left = this.StartDate <= date;
-
-            var right =  this.EndDate >= date;
-
-            return left && right;
-        }
-
-        public bool IsAfterStart()
-        {
-            return DateTime.UtcNow > this.StartDate;
+            return SystemClock.Now > this.StartDate;
         }
     }
 }

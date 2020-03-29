@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using CompanyName.MyMeetings.BuildingBlocks.Domain;
 using CompanyName.MyMeetings.Modules.Payments.Domain.MeetingGroupPaymentRegisters.Events;
+using CompanyName.MyMeetings.Modules.Payments.Domain.MeetingGroupPaymentRegisters.Rules;
+using CompanyName.MyMeetings.Modules.Payments.Domain.MeetingPayments;
 using CompanyName.MyMeetings.Modules.Payments.Domain.Payers;
 
 namespace CompanyName.MyMeetings.Modules.Payments.Domain.MeetingGroupPaymentRegisters
@@ -22,7 +24,7 @@ namespace CompanyName.MyMeetings.Modules.Payments.Domain.MeetingGroupPaymentRegi
         private MeetingGroupPaymentRegister(MeetingGroupId meetingGroupId)
         {
             this.Id = new MeetingGroupPaymentRegisterId(meetingGroupId.Value);
-            _createDate = DateTime.UtcNow;
+            _createDate = SystemClock.Now;
 
             _payments = new List<MeetingGroupPayment>();
 
@@ -36,7 +38,11 @@ namespace CompanyName.MyMeetings.Modules.Payments.Domain.MeetingGroupPaymentRegi
 
         public void RegisterPayment(PaymentTerm term, PayerId payerId)
         {
-            _payments.Add(new MeetingGroupPayment(term, payerId));
+            var meetingGroupPayment = MeetingGroupPayment.CreateForTerm(term, payerId);
+
+            this.CheckRule(new MeetingGroupPaymentsCannotOverlapRule(_payments, meetingGroupPayment));
+            
+            _payments.Add(meetingGroupPayment);
 
             this.AddDomainEvent(new PaymentRegisteredDomainEvent(this.Id, term.EndDate));
         }

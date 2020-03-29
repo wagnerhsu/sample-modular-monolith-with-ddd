@@ -632,6 +632,92 @@ PRINT N'Update complete.';
 
 GO
 
+CREATE VIEW [users].[v_UserRegistrations]
+AS
+SELECT
+    [UserRegistration].[Id],
+    [UserRegistration].[Login],
+    [UserRegistration].[Email],
+    [UserRegistration].[FirstName],
+    [UserRegistration].[LastName],
+    [UserRegistration].[Name],
+    [UserRegistration].[StatusCode]
+FROM [users].[UserRegistrations] AS [UserRegistration]
+GO
+
+CREATE VIEW [payments].[v_Payers]
+AS
+SELECT
+    [Payer].[Id],
+    [Payer].[Login],
+    [Payer].[Email],
+    [Payer].[FirstName],
+    [Payer].[LastName],
+    [Payer].[Name]
+FROM [payments].[Payers] AS [Payer]
+GO
+
+CREATE VIEW [payments].[v_MeetingGroupPaymentRegisters]
+AS
+SELECT
+    [MeetingGroupPaymentRegister].[Id],
+    [MeetingGroupPaymentRegister].[CreateDate]
+FROM [payments].[MeetingGroupPaymentRegisters] AS [MeetingGroupPaymentRegister]
+GO
+
+CREATE VIEW [payments].[v_MeetingGroupPayments]
+AS
+SELECT
+    [MeetingGroupPayment].[Id],
+    [MeetingGroupPayment].[MeetingGroupPaymentRegisterId],
+    [MeetingGroupPayment].[Date],
+    [MeetingGroupPayment].[PaymentTermStartDate],
+    [MeetingGroupPayment].[PaymentTermEndDate],
+    [MeetingGroupPayment].[PayerId]
+FROM [payments].[MeetingGroupPayments] AS [MeetingGroupPayment]
+GO
+
+CREATE VIEW [payments].[v_MeetingPayments]
+AS
+SELECT
+    [MeetingPayment].[PayerId],
+    [MeetingPayment].[MeetingId],
+    [MeetingPayment].[CreateDate],
+    [MeetingPayment].[PaymentDate],
+    [MeetingPayment].[FeeValue],
+    [MeetingPayment].[FeeCurrency]
+FROM [payments].[MeetingPayments] AS [MeetingPayment]
+GO
+
+CREATE VIEW [administration].[v_Members]
+AS
+SELECT
+    [Member].[Id],
+    [Member].[Login],
+    [Member].[Email],
+    [Member].[FirstName],
+    [Member].[LastName],
+    [Member].[Name]
+FROM [administration].[Members] AS [Member]
+GO
+
+CREATE VIEW [administration].[v_MeetingGroupProposals]
+AS
+SELECT
+    [MeetingGroupProposal].[Id],
+    [MeetingGroupProposal].[Name],
+    [MeetingGroupProposal].[Description],
+    [MeetingGroupProposal].[LocationCity],
+    [MeetingGroupProposal].[LocationCountryCode],
+    [MeetingGroupProposal].[ProposalUserId],
+    [MeetingGroupProposal].[ProposalDate],
+    [MeetingGroupProposal].[StatusCode],
+    [MeetingGroupProposal].[DecisionDate],
+    [MeetingGroupProposal].[DecisionUserId],
+    [MeetingGroupProposal].[DecisionCode],
+    [MeetingGroupProposal].[DecisionRejectReason]
+FROM [administration].[MeetingGroupProposals] AS [MeetingGroupProposal]
+GO
 
 -- Initialize some data
 
@@ -657,6 +743,16 @@ INSERT INTO users.Users VALUES
 	'testMember@mail.com',
 	'ANO7TKjxh/Dom6LG0dyoQfJciLca+e1itHQ6BZMQYs+aMbKL9MjCv6bq4gy4+MRY0w==', -- testMemberPass
 	1,
+	'John',
+	'Doe',
+	'John Doe'
+)
+
+INSERT INTO meetings.Members VALUES
+(
+	'2EBFECFC-ED13-43B8-B516-6AC89D51C510',
+	'testMember@mail.com',
+	'testMember@mail.com',
 	'John',
 	'Doe',
 	'John Doe'

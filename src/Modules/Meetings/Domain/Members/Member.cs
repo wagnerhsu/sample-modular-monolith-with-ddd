@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using CompanyName.MyMeetings.BuildingBlocks.Domain;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Members.Events;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.SharedKernel;
 
 namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Members
 {
@@ -38,7 +41,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Members
             _firstName = firstName;
             _lastName = lastName;
             _name = name;
-            _createDate = DateTime.UtcNow;
+            _createDate = SystemClock.Now;
 
             this.AddDomainEvent(new MemberCreatedDomainEvent(this.Id));
         }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.UserAccess.IntegrationEvents;
 using MediatR;
 
@@ -18,14 +18,14 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.Members.CreateMemb
 
         public Task Handle(NewUserRegisteredIntegrationEvent notification, CancellationToken cancellationToken)
         {
-            _commandsScheduler.EnqueueAsync(new 
+            _commandsScheduler.EnqueueAsync(new
                 CreateMemberCommand(
                     Guid.NewGuid(),
-                    notification.UserId, 
+                    notification.UserId,
                     notification.Login,
-                notification.Email, 
-                    notification.FirstName, 
-                    notification.LastName, 
+                notification.Email,
+                    notification.FirstName,
+                    notification.LastName,
                     notification.Name));
 
             return Task.CompletedTask;

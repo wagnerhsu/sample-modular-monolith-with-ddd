@@ -9,6 +9,7 @@ using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups.Rules;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings.Rules;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Members;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.SharedKernel;
 
 namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
 {
@@ -51,12 +52,12 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
             this._description = description;
             this._creatorId = creatorId;
             this._location = location;
-            this._createDate = DateTime.UtcNow;
+            this._createDate = SystemClock.Now;
 
             this.AddDomainEvent(new MeetingGroupCreatedDomainEvent(this.Id, creatorId));
 
             this._members = new List<MeetingGroupMember>();
-            this._members.Add(new MeetingGroupMember(this.Id, this._creatorId, MeetingGroupMemberRole.Organizer));
+            this._members.Add(MeetingGroupMember.CreateNew(this.Id, this._creatorId, MeetingGroupMemberRole.Organizer));
         }
 
         public void EditGeneralAttributes(string name, string description, MeetingGroupLocation location)
@@ -72,7 +73,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
         {
             this.CheckRule(new MeetingGroupMemberCannotBeAddedTwiceRule(_members, memberId));
 
-            this._members.Add(new MeetingGroupMember(this.Id, memberId, MeetingGroupMemberRole.Member));
+            this._members.Add(MeetingGroupMember.CreateNew(this.Id, memberId, MeetingGroupMemberRole.Member));
         }
 
         public void LeaveGroup(MemberId memberId)
@@ -87,6 +88,8 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
         public void UpdatePaymentInfo(DateTime dateTo)
         {
             _paymentDateTo = dateTo;
+
+            this.AddDomainEvent(new MeetingGroupPaymentInfoUpdatedDomainEvent(this.Id, _paymentDateTo.Value));
         }
 
         public Meeting CreateMeeting(
@@ -105,13 +108,12 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
 
             this.CheckRule(new MeetingHostMustBeAMeetingGroupMemberRule(creatorId, hostsMembersIds, _members));
 
-            return new Meeting(this.Id,
+            return Meeting.CreateNew(this.Id,
                 title,
                 term,
                 description,
                 location,
-                attendeesLimit,
-                guestsLimit,
+                MeetingLimits.Create(attendeesLimit, guestsLimit), 
                 rsvpTerm,
                 eventFee,
                 hostsMembersIds,

@@ -1,6 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.Administration.Application.Configuration.Processing;
+using CompanyName.MyMeetings.Modules.Administration.Application.Configuration;
+using CompanyName.MyMeetings.Modules.Administration.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Administration.Domain.MeetingGroupProposals;
 using CompanyName.MyMeetings.Modules.Administration.Domain.Users;
 using MediatR;
@@ -8,7 +10,7 @@ using MediatR;
 namespace CompanyName.MyMeetings.Modules.Administration.Application.MeetingGroupProposals.RequestMeetingGroupProposalVerification
 {
     internal class RequestMeetingGroupProposalVerificationCommandHandler : 
-        ICommandHandler<RequestMeetingGroupProposalVerificationCommand>
+        ICommandHandler<RequestMeetingGroupProposalVerificationCommand, Guid>
     {
         private readonly IMeetingGroupProposalRepository _meetingGroupProposalRepository;
 
@@ -17,20 +19,20 @@ namespace CompanyName.MyMeetings.Modules.Administration.Application.MeetingGroup
             _meetingGroupProposalRepository = meetingGroupProposalRepository;
         }
 
-        public async Task<Unit> Handle(RequestMeetingGroupProposalVerificationCommand request, CancellationToken cancellationToken)
+        public async Task<Guid> Handle(RequestMeetingGroupProposalVerificationCommand request, CancellationToken cancellationToken)
         {
             var meetingGroupProposal = MeetingGroupProposal.CreateToVerify(
                 request.MeetingGroupProposalId,
                 request.Name,
                 request.Description,
-                new MeetingGroupLocation(request.LocationCity, request.LocationCountryCode),
+                MeetingGroupLocation.Create(request.LocationCity, request.LocationCountryCode),
                 new UserId(request.ProposalUserId),
                 request.ProposalDate
             );
 
             await _meetingGroupProposalRepository.AddAsync(meetingGroupProposal);
 
-            return Unit.Value;
+            return meetingGroupProposal.Id.Value;
         }
     }
 }

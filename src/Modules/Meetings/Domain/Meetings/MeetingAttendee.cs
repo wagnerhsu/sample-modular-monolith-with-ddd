@@ -1,8 +1,10 @@
 ﻿using System;
 using CompanyName.MyMeetings.BuildingBlocks.Domain;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups.Events;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings.Events;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings.Rules;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Members;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.SharedKernel;
 
 namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 {
@@ -35,7 +37,18 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
         }
 
-        internal MeetingAttendee(
+        internal static MeetingAttendee CreateNew(
+            MeetingId meetingId,
+            MemberId attendeeId,
+            DateTime decisionDate,
+            MeetingAttendeeRole role,
+            int guestsNumber,
+            MoneyValue eventFee)
+        {
+            return new MeetingAttendee(meetingId, attendeeId, decisionDate, role, guestsNumber, eventFee);
+        }
+
+        private MeetingAttendee(
             MeetingId meetingId, 
             MemberId attendeeId, 
             DateTime decisionDate, 
@@ -52,13 +65,13 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
             MoneyValue fee;
 
-            if (eventFee != MoneyValue.Zero)
+            if (eventFee != MoneyValue.Undefined)
             {
                 fee = (1 + guestsNumber) * eventFee;
             }
             else
             {
-                fee = MoneyValue.Zero;
+                fee = MoneyValue.Undefined;
             }
 
             this.AddDomainEvent(new MeetingAttendeeAddedDomainEvent(this.MeetingId, AttendeeId, decisionDate, role, guestsNumber, fee));
@@ -67,7 +80,9 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
         internal void ChangeDecision()
         {
             _decisionChanged = true;
-            _decisionChangeDate = DateTime.UtcNow;
+            _decisionChangeDate = SystemClock.Now;
+
+            this.AddDomainEvent(new MeetingAttendeeChangedDecisionDomainEvent(this.AttendeeId, this.MeetingId));
         }
 
         internal bool IsActiveAttendee(MemberId attendeeId)
@@ -94,11 +109,16 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
         internal void SetAsHost()
         {
             _role = MeetingAttendeeRole.Host;
+
+            this.AddDomainEvent(new NewMeetingHostSetDomainEvent(this.MeetingId, this.AttendeeId));
         }
 
         internal void SetAsAttendee()
         {
+            this.CheckRule(new MemberCannotHaveSetAttendeeRoleMoreThanOnceRule(_role));
             _role = MeetingAttendeeRole.Attendee;
+
+            this.AddDomainEvent(new MemberSetAsAttendeeDomainEvent(this.MeetingId, this.AttendeeId));
         }
 
         internal void Remove(MemberId removingMemberId, string reason)
@@ -106,9 +126,11 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
             this.CheckRule(new ReasonOfRemovingAttendeeFromMeetingMustBeProvidedRule(reason));
 
             _isRemoved = true;
-            _removedDate = DateTime.UtcNow;
+            _removedDate = SystemClock.Now;
             _removingReason = reason;
             _removingMemberId = removingMemberId;
+
+            this.AddDomainEvent(new MeetingAttendeeRemovedDomainEvent(this.AttendeeId, this.MeetingId, reason));
         }
     }
 }

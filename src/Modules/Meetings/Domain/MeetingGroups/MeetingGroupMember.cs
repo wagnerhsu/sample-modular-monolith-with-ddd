@@ -2,6 +2,7 @@
 using CompanyName.MyMeetings.BuildingBlocks.Domain;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups.Events;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Members;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.SharedKernel;
 
 namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
 {
@@ -24,7 +25,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
             // Only for EF.
         }
 
-        public MeetingGroupMember(
+        private MeetingGroupMember(
             MeetingGroupId meetingGroupId, 
             MemberId memberId,
             MeetingGroupMemberRole role)
@@ -32,18 +33,26 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups
             this.MeetingGroupId = meetingGroupId;
             this.MemberId = memberId;
             this._role = role;
-            this.JoinedDate = DateTime.UtcNow;
+            this.JoinedDate = SystemClock.Now;
             this._isActive = true;
 
             this.AddDomainEvent(new NewMeetingGroupMemberJoinedDomainEvent(this.MeetingGroupId, this.MemberId, this._role));
         }
 
-        public void Leave()
+        internal static MeetingGroupMember CreateNew(
+            MeetingGroupId meetingGroupId,
+            MemberId memberId,
+            MeetingGroupMemberRole role)
+        {
+            return new MeetingGroupMember(meetingGroupId, memberId, role);
+        }
+
+        internal void Leave()
         {
             _isActive = false;
-            _leaveDate = DateTime.UtcNow;
+            _leaveDate = SystemClock.Now;
 
-            this.AddDomainEvent(new MeetingGroupMemberLeavedDomainEvent(this.MeetingGroupId, this.MemberId));
+            this.AddDomainEvent(new MeetingGroupMemberLeftGroupDomainEvent(this.MeetingGroupId, this.MemberId));
         }
 
         internal bool IsMember(MemberId memberId)

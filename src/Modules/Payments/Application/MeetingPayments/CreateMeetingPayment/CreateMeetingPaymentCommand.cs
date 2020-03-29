@@ -1,15 +1,15 @@
 ﻿using System;
-using CompanyName.MyMeetings.Modules.Payments.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.Payments.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Payments.Domain.MeetingPayments;
 using CompanyName.MyMeetings.Modules.Payments.Domain.Payers;
 using Newtonsoft.Json;
 
 namespace CompanyName.MyMeetings.Modules.Payments.Application.MeetingPayments.CreateMeetingPayment
 {
-    internal class CreateMeetingPaymentCommand : InternalCommandBase
+    public class CreateMeetingPaymentCommand : InternalCommandBase
     {
         [JsonConstructor]
-        internal CreateMeetingPaymentCommand(Guid id, PayerId payerId, MeetingId meetingId, decimal value, string currency) : base(id)
+        public CreateMeetingPaymentCommand(Guid id, PayerId payerId, MeetingId meetingId, decimal value, string currency) : base(id)
         {
             PayerId = payerId;
             MeetingId = meetingId;
