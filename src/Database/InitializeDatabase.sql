@@ -719,6 +719,20 @@ SELECT
 FROM [administration].[MeetingGroupProposals] AS [MeetingGroupProposal]
 GO
 
+CREATE VIEW [meetings].[v_MeetingGroupProposals]
+AS
+SELECT
+    [MeetingGroupProposal].[Id],
+    [MeetingGroupProposal].[Name],
+    [MeetingGroupProposal].[Description],
+    [MeetingGroupProposal].[LocationCity],
+    [MeetingGroupProposal].[LocationCountryCode],
+    [MeetingGroupProposal].[ProposalUserId],
+    [MeetingGroupProposal].[ProposalDate],
+    [MeetingGroupProposal].[StatusCode]
+FROM [meetings].[MeetingGroupProposals] AS [MeetingGroupProposal]
+GO
+
 -- Initialize some data
 
 -- Add Test Member
@@ -794,9 +808,9 @@ INSERT INTO users.UserRoles VALUES
 -- Roles to Permissions
 
 INSERT INTO users.[Permissions] (Code, Name) VALUES
-(
 	-- Meetings
-	'ProposeMeetingGroup', 'ProposeMeetingGroup'),
+	('GetMeetingGroupProposals', 'GetMeetingGroupProposals'),
+	('ProposeMeetingGroup', 'ProposeMeetingGroup'),
 	('CreateNewMeeting','CreateNewMeeting'),
 	('EditMeeting','EditMeeting'),
 	('AddMeetingAttendee','AddMeetingAttendee'),
@@ -820,6 +834,7 @@ INSERT INTO users.[Permissions] (Code, Name) VALUES
 	('RegisterPayment','RegisterPayment')
 
 
+INSERT INTO users.RolesToPermissions VALUES ('Member', 'GetMeetingGroupProposals')
 INSERT INTO users.RolesToPermissions VALUES ('Member', 'ProposeMeetingGroup')
 INSERT INTO users.RolesToPermissions VALUES ('Member', 'CreateNewMeeting')
 INSERT INTO users.RolesToPermissions VALUES ('Member', 'EditMeeting')
